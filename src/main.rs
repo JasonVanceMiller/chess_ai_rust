@@ -1,6 +1,6 @@
 extern crate shakmaty;
 
-use shakmaty::{Chess, Position};
+use shakmaty::*;
 
 mod random_ai;
 mod ai;
@@ -11,21 +11,29 @@ use ai::*;
 fn main() {
     println!("Hello, Gamer!");
 
-    let pos : Chess = Chess::default();
-    println!("{}", pos.board());
-    let rai = Random_Ai{};
-    let mov_opt = rai.gen_move(&pos);
+    let mut pos : Chess = Chess::default();
+    let player1 = Random_Ai{};
+    let player2 = Random_Ai{};
 
-    if let Some(mov) = mov_opt {
-        if let Ok(pos) = pos.play(&mov) {
-            println!("Played our first move!");
-            println!("{}", pos.board());
+    while pos.outcome() == None && pos.halfmoves() < 10000 {
+        let mov_opt : Option<Move>;
+        if pos.turn() == Color::White {
+            mov_opt = player1.gen_move(&pos);
         } else {
-            println!("Failed to play our first move!");
+            mov_opt = player2.gen_move(&pos);
         }
 
-    }else {
-        println!("Failed to play our first move!");
+        let Some(mov) = mov_opt else { break };
+
+        let pos_res = pos.clone().play(&mov);
+        let Ok(pos_ok) = pos_res else { break };
+        pos = pos_ok;
+        println!("{}", pos.board());
     }
+    match pos.outcome() {
+        Some(out) => { println!("{}", out); },
+        None      => { println!("Turn Limit Reached."); },
+    }
+
 }
 
